@@ -1,5 +1,5 @@
 // =======================================================
-// Archivo: sync.js
+// Archivo: sync.js (Fix URL params CheapShark en Render)
 // =======================================================
 
 const axios = require('axios');
@@ -16,6 +16,7 @@ function slugify(text) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Lista de AppIDs prioritarios
 const PRIORITY_STEAM_IDS = [2344520, 1091500, 271590, 1172470, 632470];
 
 async function syncDiscountedGames() {
@@ -24,19 +25,13 @@ async function syncDiscountedGames() {
   try {
     let allDeals = [];
 
+    // 1. Petición a CheapShark con parámetros codificados directamente en la URL
     for (let page = 0; page < 2; page++) {
       try {
-        const response = await axios.get('https://www.cheapshark.com/api/1.0/deals', {
-          params: {
-            storeID: 1,
-            sortBy: 'Savings',
-            onSale: 1,
-            pageSize: 250,
-            pageNumber: page
-          },
+        const url = `https://www.cheapshark.com/api/1.0/deals?storeID=1&sortBy=Savings&onSale=1&pageSize=250&pageNumber=${page}`;
+        const response = await axios.get(url, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'application/json'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36'
           }
         });
 
@@ -44,13 +39,14 @@ async function syncDiscountedGames() {
           allDeals = allDeals.concat(response.data);
         }
       } catch (cheapSharkErr) {
-        console.error(`⚠️ Consulta aislada CheapShark pág ${page}:`, cheapSharkErr.message);
+        console.error(`⚠️ Error al consultar página ${page} de CheapShark:`, cheapSharkErr.message);
       }
     }
 
     const deals = allDeals.filter((deal) => parseFloat(deal.savings || 0) >= 70);
     console.log(`📦 Procesando ${deals.length} ofertas para obtener precios en CLP...`);
 
+    // Asegurar AppIDs prioritarios
     const existingSteamIds = new Set(deals.map(d => parseInt(d.steamAppID)));
     for (const priorityId of PRIORITY_STEAM_IDS) {
       if (!existingSteamIds.has(priorityId)) {
@@ -76,13 +72,14 @@ async function syncDiscountedGames() {
       let coverImage = deal.thumb || '';
       let subcategories = [];
 
+      // 2. Consulta a la API oficial de Steam para Chile
       try {
         await sleep(250);
         const steamDetails = await axios.get(
           `https://store.steampowered.com/api/appdetails?appids=${steamAppId}&cc=cl&l=spanish`,
           {
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36'
             }
           }
         );
