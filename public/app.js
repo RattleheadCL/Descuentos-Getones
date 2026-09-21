@@ -1,17 +1,13 @@
 // =======================================================
 // Archivo: public/app.js
-// Descripción: Cliente web adaptado al estilo Cyberpunk Neón
-//              para "Descuentos Getones" con precios en CLP.
 // =======================================================
 
 const API_BASE = '/api';
 
-// Estado global de los filtros (por defecto desde 70%)
 let currentDiscount = '70';
 let currentSubcategory = '';
 let currentSearch = '';
 
-// Referencias al DOM
 const gamesGrid = document.getElementById('gamesGrid');
 const subcategoriesList = document.getElementById('subcategoriesList');
 const searchInput = document.getElementById('searchInput');
@@ -19,7 +15,6 @@ const loading = document.getElementById('loading');
 const emptyState = document.getElementById('emptyState');
 const discountButtons = document.querySelectorAll('.tab-btn');
 
-// Formateador oficial para Pesos Chilenos (CLP)
 function formatCLP(amount) {
   const numericAmount = parseFloat(amount) || 0;
   return new Intl.NumberFormat('es-CL', {
@@ -29,7 +24,6 @@ function formatCLP(amount) {
   }).format(numericAmount);
 }
 
-// Cargar lista de subcategorías con estilo Cyberpunk
 async function loadSubcategories() {
   try {
     const res = await fetch(`${API_BASE}/subcategories`);
@@ -39,15 +33,16 @@ async function loadSubcategories() {
       <button class="subcat-chip active bg-[#00f0ff] text-black font-bold border border-white px-3 py-1 text-xs uppercase transition-all" data-slug="">TODAS</button>
     `;
 
-    subcats.forEach(sub => {
-      const btn = document.createElement('button');
-      btn.className = 'subcat-chip bg-[#0d0d18] text-slate-300 hover:text-[#00f0ff] border border-slate-700 hover:border-[#00f0ff] px-3 py-1 text-xs font-bold uppercase transition-all';
-      btn.dataset.slug = sub.slug;
-      btn.textContent = `${sub.name} (${sub.total_games})`;
-      subcategoriesList.appendChild(btn);
-    });
+    if (Array.isArray(subcats)) {
+      subcats.forEach(sub => {
+        const btn = document.createElement('button');
+        btn.className = 'subcat-chip bg-[#0d0d18] text-slate-300 hover:text-[#00f0ff] border border-slate-700 hover:border-[#00f0ff] px-3 py-1 text-xs font-bold uppercase transition-all';
+        btn.dataset.slug = sub.slug;
+        btn.textContent = `${sub.name} (${sub.total_games})`;
+        subcategoriesList.appendChild(btn);
+      });
+    }
 
-    // Eventos de selección de subcategorías
     subcategoriesList.querySelectorAll('.subcat-chip').forEach(btn => {
       btn.addEventListener('click', (e) => {
         subcategoriesList.querySelectorAll('.subcat-chip').forEach(b => {
@@ -64,7 +59,6 @@ async function loadSubcategories() {
   }
 }
 
-// Cargar y renderizar las tarjetas con precios en CLP y colores Neón
 async function loadGames() {
   loading.classList.remove('hidden');
   emptyState.classList.add('hidden');
@@ -81,7 +75,7 @@ async function loadGames() {
 
     loading.classList.add('hidden');
 
-    if (games.length === 0) {
+    if (!Array.isArray(games) || games.length === 0) {
       emptyState.classList.remove('hidden');
       return;
     }
@@ -107,12 +101,10 @@ async function loadGames() {
           <div class="relative overflow-hidden">
             <img src="${game.cover_image}" alt="${game.title}" class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
             
-            <!-- Rating de Popularidad Neón -->
             <span class="absolute top-2 left-2 bg-black/90 text-[#ffee00] border border-[#ffee00] font-cyber font-bold text-[10px] px-2 py-0.5 shadow-[0_0_10px_rgba(255,238,0,0.5)]">
               ⭐ ${rating}
             </span>
 
-            <!-- Descuento Neón -->
             <span class="absolute top-2 right-2 ${isFree ? 'bg-[#ff007f] text-black shadow-[0_0_10px_#ff007f]' : 'bg-[#00f0ff] text-black shadow-[0_0_10px_#00f0ff]'} font-cyber font-black text-xs px-2.5 py-1">
               -${game.discount_percent}%
             </span>
@@ -150,7 +142,6 @@ async function loadGames() {
   }
 }
 
-// Filtros de descuento por solapas
 discountButtons.forEach(btn => {
   btn.addEventListener('click', (e) => {
     discountButtons.forEach(b => {
@@ -168,7 +159,6 @@ discountButtons.forEach(btn => {
   });
 });
 
-// Búsqueda en tiempo real con debounce
 let searchTimeout;
 searchInput.addEventListener('input', (e) => {
   clearTimeout(searchTimeout);
@@ -178,7 +168,6 @@ searchInput.addEventListener('input', (e) => {
   }, 300);
 });
 
-// Inicialización de la app
 document.addEventListener('DOMContentLoaded', () => {
   loadSubcategories();
   loadGames();

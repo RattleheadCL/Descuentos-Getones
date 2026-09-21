@@ -1,5 +1,5 @@
 // =======================================================
-// Archivo: sync.js (Precios en CLP con manejo de errores robusto)
+// Archivo: sync.js
 // =======================================================
 
 const axios = require('axios');
@@ -16,7 +16,6 @@ function slugify(text) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// AppIDs prioritarios para verificar siempre en Steam Chile (Diablo IV, Cyberpunk, GTA V, etc.)
 const PRIORITY_STEAM_IDS = [2344520, 1091500, 271590, 1172470, 632470];
 
 async function syncDiscountedGames() {
@@ -25,7 +24,6 @@ async function syncDiscountedGames() {
   try {
     let allDeals = [];
 
-    // 1. Obtener ofertas activas desde CheapShark con captura de errores individual por página
     for (let page = 0; page < 2; page++) {
       try {
         const response = await axios.get('https://www.cheapshark.com/api/1.0/deals', {
@@ -46,14 +44,13 @@ async function syncDiscountedGames() {
           allDeals = allDeals.concat(response.data);
         }
       } catch (cheapSharkErr) {
-        console.error(`⚠️ Error al consultar página ${page} de CheapShark:`, cheapSharkErr.message);
+        console.error(`⚠️ Consulta aislada CheapShark pág ${page}:`, cheapSharkErr.message);
       }
     }
 
     const deals = allDeals.filter((deal) => parseFloat(deal.savings || 0) >= 70);
     console.log(`📦 Procesando ${deals.length} ofertas para obtener precios en CLP...`);
 
-    // Asegurar que los AppIDs prioritarios estén en la lista de revisión
     const existingSteamIds = new Set(deals.map(d => parseInt(d.steamAppID)));
     for (const priorityId of PRIORITY_STEAM_IDS) {
       if (!existingSteamIds.has(priorityId)) {
@@ -79,9 +76,8 @@ async function syncDiscountedGames() {
       let coverImage = deal.thumb || '';
       let subcategories = [];
 
-      // 2. Consultar la API oficial de Steam para Chile (cc=cl)
       try {
-        await sleep(250); // Pausa para no sobrecargar el límite de peticiones de Steam
+        await sleep(250);
         const steamDetails = await axios.get(
           `https://store.steampowered.com/api/appdetails?appids=${steamAppId}&cc=cl&l=spanish`,
           {
@@ -94,12 +90,11 @@ async function syncDiscountedGames() {
         const gameData = steamDetails.data?.[steamAppId]?.data;
 
         if (gameData) {
-          if (gameData.is_free) continue; // Descartar juegos siempre gratuitos (F2P)
+          if (gameData.is_free) continue;
 
           title = gameData.name || title;
           coverImage = gameData.header_image || coverImage;
 
-          // Extraer precios formateados en CLP
           if (gameData.price_overview) {
             normalPrice = Math.round(gameData.price_overview.initial / 100);
             currentPrice = Math.round(gameData.price_overview.final / 100);
@@ -119,14 +114,11 @@ async function syncDiscountedGames() {
           }
         }
       } catch (steamErr) {
-        // Omite el juego fallido y continua con el siguiente sin detener el loop
         continue;
       }
 
-      // Validar precio y descuento en CLP antes de guardar
       if (normalPrice <= 0 || discountPercent < 70) continue;
 
-      // Upsert en la base de datos PostgreSQL
       const gameQuery = `
         INSERT INTO games (
           steam_app_id, title, type, normal_price, 
@@ -161,7 +153,6 @@ async function syncDiscountedGames() {
 
       const gameId = gameRes.rows[0].id;
 
-      // Guardar Subcategorías
       for (const subName of subcategories) {
         const subSlug = slugify(subName);
         if (!subSlug) continue;
