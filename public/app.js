@@ -1,5 +1,5 @@
 // =======================================================
-// Archivo: public/app.js
+// Archivo: public/app.js (Diseño Móvil Optimizado y Precios CLP)
 // =======================================================
 
 const API_BASE = '/api';
@@ -30,13 +30,13 @@ async function loadSubcategories() {
     const subcats = await res.json();
 
     subcategoriesList.innerHTML = `
-      <button class="subcat-chip active bg-[#00f0ff] text-black font-bold border border-white px-3 py-1 text-xs uppercase transition-all" data-slug="">TODAS</button>
+      <button class="subcat-chip shrink-0 active bg-[#00f0ff] text-black font-bold border border-white px-3 py-1 text-[11px] uppercase transition-all" data-slug="">TODAS</button>
     `;
 
     if (Array.isArray(subcats)) {
       subcats.forEach(sub => {
         const btn = document.createElement('button');
-        btn.className = 'subcat-chip bg-[#0d0d18] text-slate-300 hover:text-[#00f0ff] border border-slate-700 hover:border-[#00f0ff] px-3 py-1 text-xs font-bold uppercase transition-all';
+        btn.className = 'subcat-chip shrink-0 bg-[#0d0d18] text-slate-300 hover:text-[#00f0ff] border border-slate-700 hover:border-[#00f0ff] px-2.5 py-1 text-[11px] font-bold uppercase transition-all';
         btn.dataset.slug = sub.slug;
         btn.textContent = `${sub.name} (${sub.total_games})`;
         subcategoriesList.appendChild(btn);
@@ -46,11 +46,11 @@ async function loadSubcategories() {
     subcategoriesList.querySelectorAll('.subcat-chip').forEach(btn => {
       btn.addEventListener('click', (e) => {
         subcategoriesList.querySelectorAll('.subcat-chip').forEach(b => {
-          b.className = 'subcat-chip bg-[#0d0d18] text-slate-300 hover:text-[#00f0ff] border border-slate-700 hover:border-[#00f0ff] px-3 py-1 text-xs font-bold uppercase transition-all';
+          b.className = 'subcat-chip shrink-0 bg-[#0d0d18] text-slate-300 hover:text-[#00f0ff] border border-slate-700 hover:border-[#00f0ff] px-2.5 py-1 text-[11px] font-bold uppercase transition-all';
         });
-        e.target.className = 'subcat-chip active bg-[#00f0ff] text-black font-bold border border-white px-3 py-1 text-xs uppercase transition-all';
+        e.currentTarget.className = 'subcat-chip shrink-0 active bg-[#00f0ff] text-black font-bold border border-white px-3 py-1 text-[11px] uppercase transition-all';
         
-        currentSubcategory = e.target.dataset.slug;
+        currentSubcategory = e.currentTarget.dataset.slug;
         loadGames();
       });
     });
@@ -90,7 +90,7 @@ async function loadGames() {
       const categoriesHtml = (game.subcategories || [])
         .filter(c => c !== null)
         .slice(0, 3)
-        .map(c => `<span class="bg-[#121222] text-[#00f0ff] border border-[#00f0ff]/20 text-[10px] uppercase font-bold px-2 py-0.5">${c}</span>`)
+        .map(c => `<span class="bg-[#121222] text-[#00f0ff] border border-[#00f0ff]/20 text-[9px] uppercase font-bold px-1.5 py-0.5">${c}</span>`)
         .join(' ');
 
       const formattedNormal = formatCLP(game.normal_price);
@@ -99,35 +99,37 @@ async function loadGames() {
       card.innerHTML = `
         <div>
           <div class="relative overflow-hidden">
-            <img src="${game.cover_image}" alt="${game.title}" class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+            <img src="${game.cover_image}" alt="${game.title}" class="w-full h-36 sm:h-40 object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
             
-            <span class="absolute top-2 left-2 bg-black/90 text-[#ffee00] border border-[#ffee00] font-cyber font-bold text-[10px] px-2 py-0.5 shadow-[0_0_10px_rgba(255,238,0,0.5)]">
+            <!-- Popularidad -->
+            <span class="absolute top-2 left-2 bg-black/90 text-[#ffee00] border border-[#ffee00] font-cyber font-bold text-[10px] px-1.5 py-0.5 shadow-[0_0_10px_rgba(255,238,0,0.5)]">
               ⭐ ${rating}
             </span>
 
-            <span class="absolute top-2 right-2 ${isFree ? 'bg-[#ff007f] text-black shadow-[0_0_10px_#ff007f]' : 'bg-[#00f0ff] text-black shadow-[0_0_10px_#00f0ff]'} font-cyber font-black text-xs px-2.5 py-1">
+            <!-- % Descuento -->
+            <span class="absolute top-2 right-2 ${isFree ? 'bg-[#ff007f] text-black shadow-[0_0_10px_#ff007f]' : 'bg-[#00f0ff] text-black shadow-[0_0_10px_#00f0ff]'} font-cyber font-black text-xs px-2 py-0.5">
               -${game.discount_percent}%
             </span>
           </div>
           
-          <div class="p-4 space-y-3">
-            <h3 class="font-cyber font-bold text-white text-sm line-clamp-1 group-hover:text-[#00f0ff] transition-colors">${game.title}</h3>
+          <div class="p-3 sm:p-4 space-y-2">
+            <h3 class="font-cyber font-bold text-white text-xs sm:text-sm line-clamp-1 group-hover:text-[#00f0ff] transition-colors">${game.title}</h3>
             <div class="flex flex-wrap gap-1">
               ${categoriesHtml}
             </div>
           </div>
         </div>
 
-        <div class="p-4 pt-0 border-t border-[#00f0ff]/20 mt-3 flex items-center justify-between">
+        <div class="p-3 sm:p-4 pt-0 border-t border-[#00f0ff]/20 mt-2 flex items-center justify-between">
           <div>
-            <span class="text-xs text-slate-500 line-through font-bold">${formattedNormal}</span>
-            <div class="text-lg font-cyber font-black ${isFree ? 'text-[#ff007f] text-glow-pink' : 'text-[#ffee00] text-glow-yellow'}">
+            <span class="text-[10px] sm:text-xs text-slate-500 line-through font-bold">${formattedNormal}</span>
+            <div class="text-base sm:text-lg font-cyber font-black ${isFree ? 'text-[#ff007f] text-glow-pink' : 'text-[#ffee00] text-glow-yellow'}">
               ${formattedCurrent}
             </div>
           </div>
           
           <a href="${game.steam_url}" target="_blank" rel="noopener noreferrer" 
-             class="bg-[#00f0ff] hover:bg-[#ff007f] text-black font-cyber font-bold text-xs px-3 py-2 transition-all duration-200 border border-white">
+             class="bg-[#00f0ff] hover:bg-[#ff007f] text-black font-cyber font-bold text-[11px] sm:text-xs px-2.5 py-1.5 sm:px-3 sm:py-2 transition-all duration-200 border border-white">
             STEAM ↗
           </a>
         </div>
@@ -145,16 +147,17 @@ async function loadGames() {
 discountButtons.forEach(btn => {
   btn.addEventListener('click', (e) => {
     discountButtons.forEach(b => {
-      b.className = 'tab-btn bg-[#0d0d18] text-[#00f0ff] hover:bg-[#00f0ff] hover:text-black font-cyber font-bold px-5 py-2.5 text-xs tracking-wider border-2 border-[#00f0ff]/50 hover:glow-cyan transition-all duration-200 uppercase';
+      b.className = 'tab-btn whitespace-nowrap bg-[#0d0d18] text-[#00f0ff] hover:bg-[#00f0ff] hover:text-black font-cyber font-bold px-4 py-2 text-xs md:text-sm tracking-wider border-2 border-[#00f0ff]/50 hover:glow-cyan transition-all uppercase';
     });
     
-    if (e.target.dataset.discount === '100') {
-      e.target.className = 'tab-btn active bg-[#ff007f] text-black font-cyber font-bold px-5 py-2.5 text-xs tracking-wider border-2 border-white glow-pink transition-all duration-200 uppercase';
+    const target = e.currentTarget;
+    if (target.dataset.discount === '100') {
+      target.className = 'tab-btn active whitespace-nowrap bg-[#ff007f] text-black font-cyber font-bold px-4 py-2 text-xs md:text-sm tracking-wider border-2 border-white glow-pink transition-all uppercase';
     } else {
-      e.target.className = 'tab-btn active bg-[#ffee00] text-black font-cyber font-bold px-5 py-2.5 text-xs tracking-wider border-2 border-white glow-yellow transition-all duration-200 uppercase';
+      target.className = 'tab-btn active whitespace-nowrap bg-[#ffee00] text-black font-cyber font-bold px-4 py-2 text-xs md:text-sm tracking-wider border-2 border-white glow-yellow transition-all uppercase';
     }
 
-    currentDiscount = e.target.dataset.discount;
+    currentDiscount = target.dataset.discount;
     loadGames();
   });
 });

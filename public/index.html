@@ -3,163 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Descuentos Getones — Cyberpunk Radar</title>
+  <title>Descuentos Getones | Ofertas Steam Chile</title>
   
-  <!-- CDN Oficial de Tailwind CSS v3 -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Tipografía Futurista Orbitron & Rajdhani -->
+  <!-- Fuentes Google: Orbitron & Rajdhani -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
   
-  <style>
-    body { 
-      font-family: 'Rajdhani', sans-serif; 
-      background-color: #05050a;
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              black: '#050508',
+              card: '#0a0a12',
+              cyan: '#00f0ff',
+              pink: '#ff007f',
+              yellow: '#ffee00',
+              gray: '#121222'
+            }
+          },
+          fontFamily: {
+            cyber: ['Orbitron', 'sans-serif'],
+            body: ['Rajdhani', 'sans-serif']
+          }
+        }
+      }
     }
-    h1, h2, h3, .font-cyber {
-      font-family: 'Orbitron', sans-serif;
+  </script>
+
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-glow-cyan { text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff; }
+      .text-glow-pink { text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f; }
+      .text-glow-yellow { text-shadow: 0 0 10px #ffee00, 0 0 20px #ffee00; }
+      .glow-cyan { box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
+      .glow-pink { box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); }
+      .glow-yellow { box-shadow: 0 0 15px rgba(255, 238, 0, 0.4); }
     }
 
-    /* Sombras y Luces Neón */
-    .glow-yellow {
-      box-shadow: 0 0 15px rgba(255, 238, 0, 0.4);
-    }
-    .glow-cyan {
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
-    }
-    .glow-pink {
-      box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
-    }
-    .text-glow-cyan {
-      text-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
-    }
-    .text-glow-yellow {
-      text-shadow: 0 0 8px rgba(255, 238, 0, 0.7);
-    }
-    
-    /* Scrollbar Neón */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #05050a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #00f0ff;
-      border-radius: 2px;
-      box-shadow: 0 0 10px #00f0ff;
-    }
+    /* Scrollbar estilizada estilo cyberpunk */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #050508; }
+    ::-webkit-scrollbar-thumb { background: #00f0ff; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #ff007f; }
   </style>
 </head>
-<body class="text-slate-200 antialiased min-h-screen selection:bg-[#ff007f] selection:text-black">
 
-  <!-- Luces ambientadores Cyberpunk de fondo -->
-  <div class="fixed top-0 left-1/4 w-[500px] h-[300px] bg-[#00f0ff]/10 blur-[150px] pointer-events-none -z-10"></div>
-  <div class="fixed bottom-0 right-1/4 w-[500px] h-[300px] bg-[#ff007f]/10 blur-[150px] pointer-events-none -z-10"></div>
+<body class="bg-[#050508] text-slate-200 font-body min-h-screen flex flex-col selection:bg-[#ff007f] selection:text-white">
 
-  <!-- Header / Navbar Neón -->
-  <header class="bg-[#0a0a12]/90 backdrop-blur-md border-b-2 border-[#00f0ff]/40 sticky top-0 z-50 shadow-[0_4px_20px_rgba(0,240,255,0.15)]">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-6">
-      
-      <!-- Logo e Identidad -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-[#ffee00] text-black font-cyber font-black text-xl flex items-center justify-center glow-yellow border-2 border-white -skew-x-12">
-          DG
+  <!-- Header Responsive -->
+  <header class="border-b-2 border-[#00f0ff]/40 bg-[#0a0a12]/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 md:py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center space-x-3 text-center sm:text-left">
+        <div class="w-8 h-8 md:w-10 md:h-10 bg-[#ff007f] flex items-center justify-center font-cyber font-black text-black text-lg md:text-xl transform -skew-x-12 shadow-[0_0_15px_#ff007f]">
+          %
         </div>
         <div>
-          <h1 class="text-lg font-black text-[#00f0ff] tracking-wider text-glow-cyan leading-none">DESCUENTOS_GETONES//</h1>
-          <p class="text-[10px] font-bold text-[#ff007f] tracking-widest uppercase mt-1">Radar de Ofertas v2.077</p>
+          <h1 class="font-cyber font-black text-lg sm:text-2xl md:text-3xl tracking-wider text-white">
+            DESCUENTOS <span class="text-[#00f0ff] text-glow-cyan">GETONES</span>
+          </h1>
+          <p class="text-[10px] md:text-xs text-slate-400 font-cyber tracking-widest uppercase">Steam Chile Deals Tracker</p>
         </div>
       </div>
-      
-      <!-- Buscador Futurista -->
-      <div class="relative w-full max-w-sm">
+
+      <!-- Buscador para pantallas grandes y móviles -->
+      <div class="w-full sm:w-72 relative">
         <input 
           type="text" 
           id="searchInput" 
-          placeholder="BUSCAR_TITULO..." 
-          class="w-full bg-[#0d0d18] text-[#ffee00] placeholder-slate-500 font-semibold tracking-wider text-sm pl-4 pr-10 py-2.5 border-2 border-[#00f0ff]/30 focus:border-[#ff007f] focus:outline-none transition-all duration-200 rounded-none shadow-[inset_0_0_10px_rgba(0,240,255,0.1)]"
+          placeholder="BUSCAR JUEGO..." 
+          class="w-full bg-[#121222] border-2 border-[#00f0ff]/50 text-white placeholder-slate-500 text-xs md:text-sm font-cyber px-4 py-2 focus:outline-none focus:border-[#ff007f] focus:glow-pink transition-all uppercase"
         >
-        <span class="absolute right-3 top-2.5 text-[#00f0ff] font-bold">//</span>
+        <span class="absolute right-3 top-2.5 text-[#00f0ff] text-xs">🔍</span>
       </div>
-
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-6 py-10 space-y-8">
+  <!-- Contenedor Principal -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
 
-    <!-- Hero / Encabezado -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#00f0ff]/20 pb-6">
-      <div>
-        <span class="text-xs font-bold uppercase tracking-widest text-[#ffee00] text-glow-yellow mb-1 block">// DESCUENTOS ENCONTRADOS</span>
-        <h2 class="text-3xl font-black text-white tracking-wide font-cyber uppercase">Catálogo_Descuentos_Getones</h2>
-      </div>
-      <div class="flex items-center gap-2 text-xs font-bold text-[#00f0ff] tracking-wider">
-        <span class="w-2.5 h-2.5 bg-[#ff007f] glow-pink animate-ping"></span>
-        CONEXIÓN BASE DE DATOS: ACTIVA
-      </div>
+    <!-- Solapas / Filtros de Descuento (Scroll Horizontal en Móviles) -->
+    <div class="flex items-center justify-start sm:justify-center overflow-x-auto gap-2 pb-2 scrollbar-none">
+      <button data-discount="70" class="tab-btn active whitespace-nowrap bg-[#ffee00] text-black font-cyber font-bold px-4 py-2 text-xs md:text-sm tracking-wider border-2 border-white glow-yellow transition-all uppercase">
+        🔥 70%+ OFF
+      </button>
+      <button data-discount="80" class="tab-btn whitespace-nowrap bg-[#0d0d18] text-[#00f0ff] hover:bg-[#00f0ff] hover:text-black font-cyber font-bold px-4 py-2 text-xs md:text-sm tracking-wider border-2 border-[#00f0ff]/50 hover:glow-cyan transition-all uppercase">
+        ⚡ 80%+ OFF
+      </button>
+      <button data-discount="90" class="tab-btn whitespace-nowrap bg-[#0d0d18] text-[#00f0ff] hover:bg-[#00f0ff] hover:text-black font-cyber font-bold px-4 py-2 text-xs md:text-sm tracking-wider border-2 border-[#00f0ff]/50 hover:glow-cyan transition-all uppercase">
+        💥 90%+ OFF
+      </button>
+      <button data-discount="100" class="tab-btn whitespace-nowrap bg-[#0d0d18] text-[#ff007f] hover:bg-[#ff007f] hover:text-black font-cyber font-bold px-4 py-2 text-xs md:text-sm tracking-wider border-2 border-[#ff007f]/50 hover:glow-pink transition-all uppercase">
+        🎁 100% GRATIS
+      </button>
     </div>
 
-    <!-- Filtros de Descuento (70% a 100%) -->
-    <div class="space-y-4">
-      <div class="flex flex-wrap gap-3">
-        <button class="tab-btn active bg-[#ffee00] text-black font-cyber font-bold px-5 py-2.5 text-xs tracking-wider border-2 border-white glow-yellow transition-all duration-200 uppercase" data-discount="70">
-          TODAS (70%+)
-        </button>
-        <button class="tab-btn bg-[#0d0d18] text-[#ff007f] hover:bg-[#ff007f] hover:text-black font-cyber font-bold px-5 py-2.5 text-xs tracking-wider border-2 border-[#ff007f]/50 hover:glow-pink transition-all duration-200 uppercase" data-discount="100">
-          ⚡ 100% OFF (GRATIS)
-        </button>
-        <button class="tab-btn bg-[#0d0d18] text-[#00f0ff] hover:bg-[#00f0ff] hover:text-black font-cyber font-bold px-5 py-2.5 text-xs tracking-wider border-2 border-[#00f0ff]/50 hover:glow-cyan transition-all duration-200 uppercase" data-discount="95">
-          95%+ OFF
-        </button>
-        <button class="tab-btn bg-[#0d0d18] text-[#00f0ff] hover:bg-[#00f0ff] hover:text-black font-cyber font-bold px-5 py-2.5 text-xs tracking-wider border-2 border-[#00f0ff]/50 hover:glow-cyan transition-all duration-200 uppercase" data-discount="90">
-          90%+ OFF
-        </button>
-        <button class="tab-btn bg-[#0d0d18] text-[#00f0ff] hover:bg-[#00f0ff] hover:text-black font-cyber font-bold px-5 py-2.5 text-xs tracking-wider border-2 border-[#00f0ff]/50 hover:glow-cyan transition-all duration-200 uppercase" data-discount="80">
-          80%+ OFF
-        </button>
-      </div>
-
-      <!-- Selector de Subcategorías -->
-      <div class="bg-[#0a0a12] p-4 border-2 border-[#ff007f]/30 flex flex-col sm:flex-row sm:items-center gap-3 shadow-[0_0_15px_rgba(255,0,127,0.05)]">
-        <span class="text-xs font-cyber font-bold text-[#ffee00] uppercase tracking-wider shrink-0">
-          CATEGORÍAS//
-        </span>
-        <div id="subcategoriesList" class="flex flex-wrap gap-2 overflow-x-auto py-1">
-          <button class="subcat-chip active bg-[#00f0ff] text-black font-bold border border-white px-3 py-1 text-xs uppercase transition-all" data-slug="">
-            TODAS
-          </button>
-          <!-- Carga dinámica vía JS -->
-        </div>
-      </div>
+    <!-- Subcategorías (Chips con Scroll Horizontal en Móviles) -->
+    <div id="subcategoriesList" class="flex items-center gap-1.5 overflow-x-auto pb-2 text-xs scrollbar-none">
+      <!-- Carga Dinámica desde JS -->
     </div>
 
-    <!-- Grilla de Juegos -->
-    <section id="gamesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[400px]">
-      <!-- Carga dinámica vía JS -->
-    </section>
-
-    <!-- Estado de Carga -->
-    <div id="loading" class="flex flex-col items-center justify-center py-20 space-y-3">
-      <div class="w-10 h-10 border-4 border-[#00f0ff] border-t-[#ff007f] rounded-full animate-spin glow-cyan"></div>
-      <p class="text-xs font-cyber font-bold text-[#ffee00] tracking-widest uppercase">ESCANANEO DE OFERTAS EN PROCESO...</p>
+    <!-- Feedback de Carga / Spinner Neón -->
+    <div id="loading" class="flex flex-col items-center justify-center py-16 space-y-4">
+      <div class="w-12 h-12 border-4 border-[#00f0ff] border-t-[#ff007f] rounded-full animate-spin shadow-[0_0_15px_#00f0ff]"></div>
+      <p class="font-cyber text-xs tracking-widest text-[#00f0ff] uppercase animate-pulse">Cargando Ofertas Steam Chile...</p>
     </div>
 
-    <!-- Estado Vacío -->
-    <div id="emptyState" class="hidden flex flex-col items-center justify-center py-20 text-center space-y-2 bg-[#0a0a12] border-2 border-[#ff007f]/40">
-      <p class="text-base font-cyber font-bold text-[#ff007f]">SIN RESULTADOS EN LA RED</p>
-      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ajusta los parámetros del filtro de descuento o limpia la búsqueda.</p>
+    <!-- Sin Resultados -->
+    <div id="emptyState" class="hidden text-center py-16 space-y-3 bg-[#0a0a12] border-2 border-slate-800 p-6">
+      <div class="text-4xl">👾</div>
+      <h3 class="font-cyber text-lg text-white">No se encontraron juegos</h3>
+      <p class="text-xs text-slate-400">Intenta cambiar los filtros de descuento o el término de búsqueda.</p>
+    </div>
+
+    <!-- Grid de Juegos (Optimizado: 1 Columna en Teléfonos, 2 en Tablet, 3-4 en Desktop) -->
+    <div id="gamesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+      <!-- Tarjetas de Juegos Renderizadas por app.js -->
     </div>
 
   </main>
 
-  <footer class="border-t-2 border-[#00f0ff]/20 mt-20 py-8 text-center text-xs font-bold text-slate-500 uppercase tracking-widest">
-    <p>DESCUENTOS GETONES // POWERED BY CHEAPSHARK & STEAM API</p>
+  <!-- Footer -->
+  <footer class="border-t border-[#00f0ff]/20 bg-[#0a0a12] mt-12 py-6 text-center text-xs text-slate-500 font-cyber">
+    <p>DESCUENTOS GETONES &copy; 2026 | Precios Oficiales Steam Chile (CLP)</p>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>
