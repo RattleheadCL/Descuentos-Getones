@@ -1,5 +1,5 @@
 // =======================================================
-// Archivo: sync.js (Sincroniza todas las ofertas a partir de 1% OFF)
+// Archivo: sync.js (Sincronización Multirango y Steam Featured)
 // =======================================================
 
 const axios = require('axios');
@@ -29,14 +29,43 @@ const PRIORITY_STEAM_IDS = [
 ];
 
 async function syncDiscountedGames() {
-  console.log('🔄 Iniciando sincronización de ofertas en Pesos Chilenos (CLP)...');
+  console.log('🔄 Iniciando sincronización multirango de ofertas en Pesos Chilenos (CLP)...');
 
   try {
-    let allDeals = [];
+    let rawDealsMap = new Map();
 
-    for (let page = 0; page < 2; page++) {
+    // 1. Obtener destacados con oferta directamente desde la API oficial de Steam
+    try {
+      const featuredRes = await axios.get('https://store.steampowered.com/api/featuredcategories?cc=cl&l=spanish', {
+        headers: { 'User-Agent': 'DescuentosGetones/1.0 (contact@descuentosgetones.com)' },
+        timeout: 8000
+      });
+
+      const specials = featuredRes.data?.specials?.items || [];
+      specials.forEach(item => {
+        if (item.id) {
+          rawDealsMap.set(parseInt(item.id), {
+            steamAppID: item.id.toString(),
+            title: item.name || '',
+            dealRating: '8.5',
+            steamRatingCount: '500'
+          });
+        }
+      });
+    } catch (featuredErr) {
+      console.error('⚠️ Error al consultar ofertas destacadas de Steam:', featuredErr.message);
+    }
+
+    // 2. Consultar CheapShark por rangos específicos (Ofertas altas, medias y bajas <= 50%)
+    const cheapSharkRanges = [
+      { min: 76, max: 100 },
+      { min: 51, max: 75 },
+      { min: 1,  max: 50 }
+    ];
+
+    for (const range of cheapSharkRanges) {
       try {
-        const url = `https://www.cheapshark.com/api/1.0/deals?storeID=1&sortBy=Savings&onSale=1&pageSize=250&pageNumber=${page}`;
+        const url = `https://www.cheapshark.com/api/1.0/deals?storeID=1&sortBy=Savings&onSale=1&pageSize=100&lowerBound=${range.min}&upperBound=${range.max}`;
         const response = await axios.get(url, {
           headers: {
             'User-Agent': 'DescuentosGetones/1.0 (contact@descuentosgetones.com)',
@@ -46,21 +75,22 @@ async function syncDiscountedGames() {
         });
 
         if (Array.isArray(response.data)) {
-          allDeals = allDeals.concat(response.data);
+          response.data.forEach(deal => {
+            const appId = parseInt(deal.steamAppID);
+            if (appId && !rawDealsMap.has(appId)) {
+              rawDealsMap.set(appId, deal);
+            }
+          });
         }
-      } catch (cheapSharkErr) {
-        console.error(`⚠️ Error al consultar página ${page} de CheapShark:`, cheapSharkErr.message);
+      } catch (rangeErr) {
+        console.error(`⚠️ Error al consultar rango ${range.min}%-${range.max}% en CheapShark:`, rangeErr.message);
       }
     }
 
-    // Aceptar cualquier juego con oferta activa (>= 1% de descuento)
-    const deals = allDeals.filter((deal) => parseFloat(deal.savings || 0) >= 1);
-    console.log(`📦 Procesando ${deals.length} ofertas obtenidas...`);
-
-    const existingSteamIds = new Set(deals.map(d => parseInt(d.steamAppID)));
+    // 3. Incluir AppIDs prioritarios
     for (const priorityId of PRIORITY_STEAM_IDS) {
-      if (!existingSteamIds.has(priorityId)) {
-        deals.push({
+      if (!rawDealsMap.has(priorityId)) {
+        rawDealsMap.set(priorityId, {
           steamAppID: priorityId.toString(),
           title: '',
           dealRating: '9.0',
@@ -69,6 +99,10 @@ async function syncDiscountedGames() {
       }
     }
 
+    const deals = Array.from(rawDealsMap.values());
+    console.log(`📦 Procesando un total de ${deals.length} juegos en oferta obtenida en todos los rangos...`);
+
+    // 4. Validar y actualizar cada oferta con la API de Steam Chile (cc=cl)
     for (const deal of deals) {
       const steamAppId = parseInt(deal.steamAppID);
       if (!steamAppId) continue;
@@ -97,7 +131,7 @@ async function syncDiscountedGames() {
         const gameData = steamDetails.data?.[steamAppId]?.data;
 
         if (gameData) {
-          if (gameData.is_free) continue;
+          if (gameData.is_free) continue; // Ignorar juegos siempre F2P
 
           title = gameData.name || title;
           coverImage = gameData.header_image || coverImage;
@@ -124,6 +158,7 @@ async function syncDiscountedGames() {
         continue;
       }
 
+      // Debe tener precio válido y un descuento de al menos 1%
       if (normalPrice <= 0 || discountPercent < 1) continue;
 
       const gameQuery = `
@@ -183,7 +218,7 @@ async function syncDiscountedGames() {
       }
     }
 
-    console.log('✅ Sincronización completada exitosamente con precios en CLP.');
+    console.log('✅ Sincronización multirango completada con éxito.');
   } catch (error) {
     console.error('❌ Error general en la sincronización:', error.message);
   }
