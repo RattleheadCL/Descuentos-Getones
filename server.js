@@ -1,5 +1,5 @@
 // =======================================================
-// Archivo: server.js
+// Archivo: server.js (Con Filtros por Rangos Exactos de Descuento)
 // =======================================================
 
 const express = require('express');
@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Endpoint: Obtener juegos filtrados
+// Endpoint: Obtener juegos filtrados por rango de descuento y subcategoría
 app.get('/api/games', async (req, res) => {
   try {
     const { discount, subcategory, search } = req.query;
@@ -35,10 +35,17 @@ app.get('/api/games', async (req, res) => {
     const values = [];
     let paramIndex = 1;
 
+    // Aplicar filtrado por rangos de porcentaje exactos
     if (discount) {
       const minDiscount = parseInt(discount, 10);
       if (minDiscount === 100) {
         query += ` AND g.discount_percent = 100`;
+      } else if (minDiscount === 70) {
+        query += ` AND g.discount_percent BETWEEN 70 AND 79`;
+      } else if (minDiscount === 80) {
+        query += ` AND g.discount_percent BETWEEN 80 AND 89`;
+      } else if (minDiscount === 90) {
+        query += ` AND g.discount_percent BETWEEN 90 AND 99`;
       } else if (!isNaN(minDiscount)) {
         query += ` AND g.discount_percent >= $${paramIndex++}`;
         values.push(minDiscount);
