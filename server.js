@@ -1,5 +1,5 @@
 // =======================================================
-// Archivo: server.js (Con Filtros por Rangos Exactos de Descuento)
+// Archivo: server.js (Filtros por nuevos rangos de descuento)
 // =======================================================
 
 const express = require('express');
@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Endpoint: Obtener juegos filtrados por rango de descuento y subcategoría
+// Endpoint: Obtener juegos filtrados por los nuevos rangos de descuento
 app.get('/api/games', async (req, res) => {
   try {
     const { discount, subcategory, search } = req.query;
@@ -35,20 +35,20 @@ app.get('/api/games', async (req, res) => {
     const values = [];
     let paramIndex = 1;
 
-    // Aplicar filtrado por rangos de porcentaje exactos
+    // Aplicar filtrado por los nuevos rangos requeridos
     if (discount) {
-      const minDiscount = parseInt(discount, 10);
-      if (minDiscount === 100) {
+      const discountType = parseInt(discount, 10);
+      if (discountType === 100) {
         query += ` AND g.discount_percent = 100`;
-      } else if (minDiscount === 70) {
-        query += ` AND g.discount_percent BETWEEN 70 AND 79`;
-      } else if (minDiscount === 80) {
-        query += ` AND g.discount_percent BETWEEN 80 AND 89`;
-      } else if (minDiscount === 90) {
-        query += ` AND g.discount_percent BETWEEN 90 AND 99`;
-      } else if (!isNaN(minDiscount)) {
+      } else if (discountType === 76) {
+        query += ` AND g.discount_percent BETWEEN 76 AND 99`;
+      } else if (discountType === 51) {
+        query += ` AND g.discount_percent BETWEEN 51 AND 75`;
+      } else if (discountType === 50) {
+        query += ` AND g.discount_percent BETWEEN 1 AND 50`;
+      } else if (!isNaN(discountType)) {
         query += ` AND g.discount_percent >= $${paramIndex++}`;
-        values.push(minDiscount);
+        values.push(discountType);
       }
     }
 
@@ -100,7 +100,7 @@ app.get('/api/subcategories', async (req, res) => {
   }
 });
 
-// Programar tarea de sincronización automática cada 6 horas
+// Programar sincronización automática cada 6 horas
 cron.schedule('0 */6 * * *', () => {
   console.log('⏰ Ejecutando sincronización automática programada...');
   syncDiscountedGames();

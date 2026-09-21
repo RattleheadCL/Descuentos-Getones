@@ -1,10 +1,10 @@
 // =======================================================
-// Archivo: public/app.js (Diseño Móvil Optimizado y Precios CLP)
+// Archivo: public/app.js (Soporte para los nuevos rangos)
 // =======================================================
 
 const API_BASE = '/api';
 
-let currentDiscount = '70';
+let currentDiscount = '76';
 let currentSubcategory = '';
 let currentSearch = '';
 
@@ -101,12 +101,10 @@ async function loadGames() {
           <div class="relative overflow-hidden">
             <img src="${game.cover_image}" alt="${game.title}" class="w-full h-36 sm:h-40 object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
             
-            <!-- Popularidad -->
             <span class="absolute top-2 left-2 bg-black/90 text-[#ffee00] border border-[#ffee00] font-cyber font-bold text-[10px] px-1.5 py-0.5 shadow-[0_0_10px_rgba(255,238,0,0.5)]">
               ⭐ ${rating}
             </span>
 
-            <!-- % Descuento -->
             <span class="absolute top-2 right-2 ${isFree ? 'bg-[#ff007f] text-black shadow-[0_0_10px_#ff007f]' : 'bg-[#00f0ff] text-black shadow-[0_0_10px_#00f0ff]'} font-cyber font-black text-xs px-2 py-0.5">
               -${game.discount_percent}%
             </span>

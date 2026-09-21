@@ -1,5 +1,5 @@
 // =======================================================
-// Archivo: sync.js (Fix User-Agent para CheapShark y Fallback Steam)
+// Archivo: sync.js (Sincroniza todas las ofertas a partir de 1% OFF)
 // =======================================================
 
 const axios = require('axios');
@@ -16,12 +16,11 @@ function slugify(text) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Lista expandida de AppIDs populares en oferta / prioridad para asegurar juegos siempre
 const PRIORITY_STEAM_IDS = [
   2344520, // Diablo IV
   1091500, // Cyberpunk 2077
   271590,  // GTA V
-  1172470, // Apex Legends (para filtrar si es F2P)
+  1172470, // Apex Legends
   632470,  // Disco Elysium
   1086940, // Baldur's Gate 3
   1245620, // ELDEN RING
@@ -35,7 +34,6 @@ async function syncDiscountedGames() {
   try {
     let allDeals = [];
 
-    // 1. Consultar CheapShark enviando un User-Agent identificativo
     for (let page = 0; page < 2; page++) {
       try {
         const url = `https://www.cheapshark.com/api/1.0/deals?storeID=1&sortBy=Savings&onSale=1&pageSize=250&pageNumber=${page}`;
@@ -55,10 +53,10 @@ async function syncDiscountedGames() {
       }
     }
 
-    const deals = allDeals.filter((deal) => parseFloat(deal.savings || 0) >= 70);
-    console.log(`📦 Procesando ${deals.length} ofertas obtenidas de CheapShark...`);
+    // Aceptar cualquier juego con oferta activa (>= 1% de descuento)
+    const deals = allDeals.filter((deal) => parseFloat(deal.savings || 0) >= 1);
+    console.log(`📦 Procesando ${deals.length} ofertas obtenidas...`);
 
-    // 2. Si CheapShark no devolvió ofertas (por bloqueo temporario), poblar con la lista prioritaria de Steam
     const existingSteamIds = new Set(deals.map(d => parseInt(d.steamAppID)));
     for (const priorityId of PRIORITY_STEAM_IDS) {
       if (!existingSteamIds.has(priorityId)) {
@@ -71,7 +69,6 @@ async function syncDiscountedGames() {
       }
     }
 
-    // 3. Procesar cada juego contra la API de Steam Chile (cc=cl)
     for (const deal of deals) {
       const steamAppId = parseInt(deal.steamAppID);
       if (!steamAppId) continue;
@@ -86,12 +83,12 @@ async function syncDiscountedGames() {
       let subcategories = [];
 
       try {
-        await sleep(250); // Pausa recomendada para la API de Steam
+        await sleep(250);
         const steamDetails = await axios.get(
           `https://store.steampowered.com/api/appdetails?appids=${steamAppId}&cc=cl&l=spanish`,
           {
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36'
             },
             timeout: 8000
           }
@@ -100,7 +97,7 @@ async function syncDiscountedGames() {
         const gameData = steamDetails.data?.[steamAppId]?.data;
 
         if (gameData) {
-          if (gameData.is_free) continue; // Descartar Free-To-Play permanentes
+          if (gameData.is_free) continue;
 
           title = gameData.name || title;
           coverImage = gameData.header_image || coverImage;
@@ -127,10 +124,8 @@ async function syncDiscountedGames() {
         continue;
       }
 
-      // Requisito: debe tener precio válido y descuento mayor o igual al 70%
-      if (normalPrice <= 0 || discountPercent < 70) continue;
+      if (normalPrice <= 0 || discountPercent < 1) continue;
 
-      // Guardar / Actualizar juego en PostgreSQL
       const gameQuery = `
         INSERT INTO games (
           steam_app_id, title, type, normal_price, 
@@ -165,7 +160,6 @@ async function syncDiscountedGames() {
 
       const gameId = gameRes.rows[0].id;
 
-      // Guardar Subcategorías
       for (const subName of subcategories) {
         const subSlug = slugify(subName);
         if (!subSlug) continue;
