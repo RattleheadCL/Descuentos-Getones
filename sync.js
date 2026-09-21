@@ -1,5 +1,5 @@
 // =======================================================
-// Archivo: sync.js (Sincronización Directa de Steam Chile)
+// Archivo: sync.js (Con catálogo masivo de franquicias en CLP)
 // =======================================================
 
 const axios = require('axios');
@@ -16,28 +16,74 @@ function slugify(text) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Lista de AppIDs prioritarios para verificar siempre
+// Catálogo masivo de sagas y juegos populares para monitorear ofertas en Steam Chile
 const PRIORITY_STEAM_IDS = [
+  1174180, // Red Dead Redemption 2
+  2668510, // Red Dead Redemption 1
+  271590,  // Grand Theft Auto V
   2344520, // Diablo IV
   1091500, // Cyberpunk 2077
-  271590,  // GTA V
-  1172470, // Apex Legends
-  632470,  // Disco Elysium
-  1086940, // Baldur's Gate 3
+  292030,  // The Witcher 3: Wild Hunt
+  1551360, // Forza Horizon 5
   1245620, // ELDEN RING
+  1086940, // Baldur's Gate 3
+  1593500, // God of War
+  1817070, // Marvel's Spider-Man Remastered
+  2195250, // EA SPORTS FC 24 / 25
   252490,  // Rust
+  632470,  // Disco Elysium
+  1172470, // Apex Legends
+  550,     // Left 4 Dead 2
+  221100,  // DayZ
+  1085660, // Destiny 2
+  2357570, // Overwatch 2
+  359550,  // Tom Clancy's Rainbow Six Siege
+  271590,  // GTA V
+  1938090, // Call of Duty
+  582010,  // Monster Hunter: World
+  1235140, // Yakuza: Like a Dragon
+  1151640, // Horizon Zero Dawn
   730      // Counter-Strike 2
 ];
 
 async function syncDiscountedGames() {
-  console.log('🔄 Iniciando sincronización masiva DIRECTA desde Steam Chile (CLP)...');
+  console.log('🔄 Iniciando sincronización de ofertas en Pesos Chilenos (CLP)...');
 
   try {
     let rawDealsMap = new Map();
 
-    // 1. Obtener ofertas masivas directamente del motor de búsqueda de Steam Chile
-    // Realizamos búsquedas paginadas para capturar cientos de juegos con cualquier descuento
-    for (let start = 0; start < 300; start += 50) {
+    // 1. Cargar el catálogo masivo de AppIDs prioritarios y sagas
+    for (const id of PRIORITY_STEAM_IDS) {
+      rawDealsMap.set(id, { steamAppID: id.toString(), title: '' });
+    }
+
+    // 2. Traer todas las ofertas destacadas actuales de Steam Chile
+    try {
+      const featuredRes = await axios.get('https://store.steampowered.com/api/featuredcategories?cc=cl&l=spanish', {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36'
+        },
+        timeout: 8000
+      });
+
+      const categories = featuredRes.data || {};
+      Object.keys(categories).forEach(catKey => {
+        const items = categories[catKey]?.items || [];
+        items.forEach(item => {
+          if (item.id) {
+            rawDealsMap.set(parseInt(item.id), {
+              steamAppID: item.id.toString(),
+              title: item.name || ''
+            });
+          }
+        });
+      });
+    } catch (featuredErr) {
+      console.error('⚠️ Error en featuredcategories de Steam:', featuredErr.message);
+    }
+
+    // 3. Traer ofertas paginadas de la tienda de Steam Chile
+    for (let start = 0; start < 200; start += 50) {
       try {
         const searchUrl = `https://store.steampowered.com/api/storesearch/?term=&l=spanish&cc=cl&start=${start}&count=50`;
         const response = await axios.get(searchUrl, {
@@ -52,8 +98,7 @@ async function syncDiscountedGames() {
           if (item.id) {
             rawDealsMap.set(parseInt(item.id), {
               steamAppID: item.id.toString(),
-              title: item.name || '',
-              coverImage: item.tiny_image || ''
+              title: item.name || ''
             });
           }
         });
@@ -62,39 +107,10 @@ async function syncDiscountedGames() {
       }
     }
 
-    // 2. Obtener destacados con oferta de la portada de Steam
-    try {
-      const featuredRes = await axios.get('https://store.steampowered.com/api/featuredcategories?cc=cl&l=spanish', {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36'
-        },
-        timeout: 8000
-      });
-
-      const specials = featuredRes.data?.specials?.items || [];
-      specials.forEach((item) => {
-        if (item.id) {
-          rawDealsMap.set(parseInt(item.id), {
-            steamAppID: item.id.toString(),
-            title: item.name || ''
-          });
-        }
-      });
-    } catch (featuredErr) {
-      console.error('⚠️ Error en featuredcategories de Steam:', featuredErr.message);
-    }
-
-    // 3. Incluir juegos prioritarios
-    for (const priorityId of PRIORITY_STEAM_IDS) {
-      if (!rawDealsMap.has(priorityId)) {
-        rawDealsMap.set(priorityId, { steamAppID: priorityId.toString(), title: '' });
-      }
-    }
-
     const deals = Array.from(rawDealsMap.values());
-    console.log(`📦 Procesando un total de ${deals.length} juegos obtenidos directamente de Steam Chile...`);
+    console.log(`📦 Procesando un total de ${deals.length} juegos en la lista de revisión...`);
 
-    // 4. Obtener detalles extendidos (precios exactos en CLP y subcategorías)
+    // 4. Consultar precios oficiales y ofertas en CLP contra la API de Steam Chile (cc=cl)
     for (const deal of deals) {
       const steamAppId = parseInt(deal.steamAppID);
       if (!steamAppId) continue;
@@ -103,9 +119,9 @@ async function syncDiscountedGames() {
       let normalPrice = 0;
       let currentPrice = 0;
       let discountPercent = 0;
-      let dealRating = 8.5;
+      let dealRating = 8.0;
       let steamRatingCount = 1000;
-      let coverImage = deal.coverImage || '';
+      let coverImage = '';
       let subcategories = [];
 
       try {
@@ -153,7 +169,6 @@ async function syncDiscountedGames() {
       // Requisito: Debe estar en oferta activa (descuento >= 1%)
       if (normalPrice <= 0 || discountPercent < 1) continue;
 
-      // Calcular deal_rating en función del porcentaje de descuento para ordenar las tarjetas
       dealRating = (discountPercent / 10).toFixed(1);
 
       const gameQuery = `
@@ -213,7 +228,7 @@ async function syncDiscountedGames() {
       }
     }
 
-    console.log('✅ Sincronización masiva desde Steam Chile completada.');
+    console.log('✅ Sincronización completada exitosamente.');
   } catch (error) {
     console.error('❌ Error general en la sincronización:', error.message);
   }
